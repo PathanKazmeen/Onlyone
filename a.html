@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>For You ❤️</title>
+<meta name="description" content="A little interactive surprise." />
+<style>
+  :root{
+    --bg:#0f0f13;
+    --card:#181820;
+    --soft:#9aa0a6;
+    --text:#e8eaed;
+    --accent:#ff4d6d;
+    --accent-2:#ffd166;
+    --glow: 0 0 30px rgba(255,77,109,.35);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;background:
+      radial-gradient(1200px 800px at 80% -10%,rgba(255,77,109,.12),transparent 70%),
+      radial-gradient(900px 600px at -10% 100%,rgba(255,209,102,.10),transparent 60%),
+      linear-gradient(180deg,#101016 0%, #0b0b0f 100%);
+    color:var(--text); font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+    overflow-x:hidden;
+  }
+  .wrap{max-width:960px;margin:0 auto;padding:28px}
+
+  /* Floating hearts background */
+  .hearts{
+    position:fixed; inset:0; overflow:hidden; z-index:-1; pointer-events:none;
+  }
+  .heart{position:absolute; font-size:18px; opacity:.6; animation: float 12s linear infinite}
+  @keyframes float{
+    0%{transform:translateY(100vh) scale(.8) rotate(0deg); opacity:.0}
+    10%{opacity:.6}
+    100%{transform:translateY(-15vh) scale(1.1) rotate(360deg); opacity:0}
+  }
+
+  header{
+    display:grid; gap:12px; place-items:center; text-align:center; padding:56px 0 24px;
+  }
+  h1{
+    margin:0; font-weight:800; letter-spacing:.5px;
+    font-size:clamp(28px, 4.5vw, 48px);
+    text-shadow: var(--glow);
+  }
+  .type{ font-size:clamp(16px, 2.5vw, 22px); color:#f1f3f4cc; min-height:2.4em}
+  .chip{
+    display:inline-flex; align-items:center; gap:8px; padding:8px 14px; border-radius:999px;
+    background:linear-gradient(180deg,#1c1c24,#15151c); border:1px solid #262635; color:#f1f3f4cc;
+  }
+
+  .card{
+    background:linear-gradient(180deg,#181822,#13131a);
+    border:1px solid #26263a; border-radius:18px; box-shadow: 0 10px 40px rgba(0,0,0,.35);
+    padding:22px; margin:16px auto;
+  }
+
+  /* Proposal block */
+  .proposal{
+    display:grid; gap:20px; place-items:center; padding:26px 18px;
+  }
+  .question{
+    font-size:clamp(24px, 4vw, 36px); font-weight:700; text-align:center;
+  }
+  .btns{display:flex; gap:14px; flex-wrap:wrap; justify-content:center}
+  button{
+    font:inherit; border:0; border-radius:14px; padding:14px 22px; cursor:pointer;
+    transition:.18s transform ease, .2s box-shadow ease, .2s background ease;
+  }
+  .yes{ background:linear-gradient(180deg,#ff5a7a,#ff3561); color:white; box-shadow:0 8px 24px rgba(255,77,109,.35) }
+  .yes:active{ transform: translateY(1px) scale(.98) }
+  .no{ background:#232334; color:#e3e3ea }
+  .no:hover{ transform: translateY(-2px) }
+
+  /* Hidden celebration */
+  .celebrate{ display:none; text-align:center; }
+  .celebrate.show{ display:block; animation: pop .45s ease-out }
+  @keyframes pop{ from{ transform:scale(.96); opacity:0 } to{ transform:scale(1); opacity:1 } }
+
+  /* Reasons grid */
+  .reasons{ display:grid; gap:12px; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); }
+  .reason{
+    background:#1a1a23; border:1px solid #2a2a3a; border-radius:14px; padding:14px;
+    transition: transform .2s ease, box-shadow .2s ease;
+  }
+  .reason:hover{ transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,.25) }
+
+  /* Gallery carousel */
+  .carousel{ position:relative; overflow:hidden; border-radius:16px; border:1px solid #2a2a3c }
+  .track{ display:flex; width:400%; transition: transform .5s ease }
+  .slide{ width:100%; aspect-ratio: 16/9; display:grid; place-items:center; background:#111; }
+  .slide img{ width:100%; height:100%; object-fit:cover }
+  .dots{ display:flex; gap:8px; justify-content:center; padding:10px }
+  .dots button{ width:10px; height:10px; border-radius:50%; background:#3a3a48 }
+  .dots button[aria-current="true"]{ background:white }
+
+  /* Controls */
+  .controls{ display:flex; gap:12px; justify-content:center; align-items:center; flex-wrap:wrap; padding:10px 0 0 }
+  .small{ color:var(--soft); font-size:14px }
+
+  /* Ring emoji bounce */
+  .ring{ font-size:40px; filter: drop-shadow(0 6px 20px rgba(255,209,102,.45)); animation: ring 1.75s ease-in-out infinite }
+  @keyframes ring{ 0%,100%{ transform:translateY(0) rotate(0) } 50%{ transform:translateY(-6px) rotate(8deg) } }
+
+  button:focus-visible{ outline: 2px solid var(--accent-2); outline-offset:2px; }
+
+  #fx{ position:fixed; inset:0; pointer-events:none; z-index:5 }
+
+  @media (max-width:560px){
+    .btns{ gap:10px }
+    .yes, .no{ padding:12px 18px }
+  }
+</style>
+</head>
+<body>
+<canvas id="fx"></canvas>
+<div class="hearts" id="hearts"></div>
+
+<div class="wrap">
+  <header>
+    <span class="chip">💌 just for you</span>
+    <h1>Hi, My Love Aleesha 🌙</h1>
+    <p class="type" id="type"></p>
+  </header>
+
+  <section class="card proposal" aria-live="polite">
+    <div class="question">
+      Will you be my Soulmate, My Jaan? 💍
+    </div>
+    <div class="btns">
+      <button class="yes" id="yesBtn" aria-label="Yes">Absolutely, YES!</button>
+      <button class="no" id="noBtn" aria-label="No (cheeky)">Hmm... No?</button>
+    </div>
+
+    <div class="celebrate" id="celebrate">
+      <div style="font-size:clamp(22px,3.6vw,32px);font-weight:800;margin-top:6px">
+        You said YES! 🎉
+      </div>
+      <div class="small" id="since">Days since our first day: —</div>
+      <div style="margin:12px 0"><span class="ring">💍</span></div>
+      <div class="small">I promise to love you, support you, and make you laugh every day. ❤️</div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 style="margin:4px 2px 10px">A few reasons I love you</h2>
+    <div class="reasons">
+      <div class="reason">✅ teri aankhon mein doob jao or teri baton mein kho jao</div>
+      <div class="reason">✅ ye kya hua malum nahi ishq hua kya</div>
+      <div class="reason">✅ Na jane kya itna achcha kiya hoga mene jo mujhe tum mil gayi</div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 style="margin:4px 2px 10px">Our little gallery</h2>
+    <div class="carousel" id="carousel" aria-roledescription="carousel">
+      <div class="track" id="track">
+        <div class="slide"><img src="C:\Users\DELL\Downloads\WhatsApp Image 2025-08-13 at 23.18.31_12081f5d.jpg" alt="Us being goofy"></div>
+      </div>
+    </div>
+    <div class="dots" role="tablist">
+      <button role="tab" aria-selected="true" aria-current="true" data-i="0"></button>
+      <button role="tab" aria-selected="false" data-i="1"></button>
+      <button role="tab" aria-selected="false" data-i="2"></button>
+      <button role="tab" aria-selected="false" data-i="3"></button>
+    </div>
+    <div class="controls">
+      <button class="no" id="prev">◀︎ Prev</button>
+      <button class="no" id="next">Next ▶︎</button>
+      <span class="small">Tip: swipe on mobile</span>
+    </div>
+  </section>
+
+  <footer class="wrap" style="text-align:center;padding-bottom:60px">
+    <div class="small">Made with ❤️ by <span id="myName">[Your Name]</span></div>
+  </footer>
+</div>
+
+<script>
+/* Customize */
+const YOUR_NAME = "Kazmeen";
+const HER_NAME  = "Aleesha";
+const RELATIONSHIP_START = "2023-02-13";
+const INTRO_LINES = [
+  `I have a tiny secret, ${HER_NAME}…`,
+  "It started the moment we met.",
+  "Grew with every laugh, every call, every silly selfie.",
+  "And tonight, I want to ask you something big. 💖"
+];
+
+document.getElementById('myName').textContent = YOUR_NAME;
+
+/* Typewriter */
+(async function typewrite(){
+  const el = document.getElementById('type');
+  for (const line of INTRO_LINES){
+    await write(line, el);
+    await pause(700);
+  }
+  function write(text, el){
+    el.innerHTML = "";
+    return new Promise(res=>{
+      let i=0;
+      const id = setInterval(()=>{
+        el.textContent = text.slice(0, ++i);
+        if(i>=text.length){ clearInterval(id); res(); }
+      }, 28);
+    });
+  }
+  function pause(ms){ return new Promise(r=>setTimeout(r,ms)); }
+})();
+
+/* Floating hearts */
+(function hearts(){
+  const container = document.getElementById('hearts');
+  const emojis = ["❤️","💗","💖","💘","💝","💞","🩷"];
+  function spawn(){
+    const h = document.createElement('div');
+    h.className = 'heart';
+    h.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    h.style.left = Math.random()*100 + 'vw';
+    h.style.animationDuration = (8 + Math.random()*6) + 's';
+    h.style.fontSize = (14 + Math.random()*22) + 'px';
+    container.appendChild(h);
+    setTimeout(()=> h.remove(), 14000);
+  }
+  setInterval(spawn, 500);
+})();
+
+/* Carousel */
+(function carousel(){
+  const track = document.getElementById('track');
+  const dots = [...document.querySelectorAll('.dots button')];
+  const slides = document.querySelectorAll('.slide');
+  let i = 0;
+  const go = (n)=>{
+    i = (n + slides.length) % slides.length;
+    track.style.transform = `translateX(-${i*100}%)`;
+    dots.forEach((d,di)=>{ d.setAttribute('aria-current', di===i); d.setAttribute('aria-selected', di===i) });
+  };
+  document.getElementById('next').onclick = ()=>go(i+1);
+  document.getElementById('prev').onclick = ()=>go(i-1);
+  dots.forEach(d=> d.onclick = ()=> go(+d.dataset.i));
+
+  let x0=null;
+  track.addEventListener('pointerdown', e=>{ x0 = e.clientX; track.setPointerCapture(e.pointerId); });
+  track.addEventListener('pointerup', e=>{
+    if(x0===null) return;
+    const dx = e.clientX - x0; x0=null;
+    if(Math.abs(dx) > 30) go(i + (dx<0?1:-1));
+  });
+  addEventListener('keydown', e=>{
+    if(e.key==='ArrowRight') go(i+1);
+    if(e.key==='ArrowLeft') go(i-1);
+  });
+})();
+
+/* No button dodge */
+(function dodgeButton(){
+  const no = document.getElementById('noBtn');
+  function move(){
+    const pad = 12;
+    const maxX = window.innerWidth - no.offsetWidth - pad;
+    const maxY = window.innerHeight - no.offsetHeight - pad;
+    const x = Math.random()*maxX + 'px';
+    const y = Math.random()*maxY + 'px';
+    no.style.position = 'fixed';
+    no.style.left = x;
+    no.style.top  = y;
+  }
+  let hops = 0;
+  const limit = 6;
+  no.addEventListener('pointerenter', ()=>{ if(hops<limit) { move(); hops++ }});
+  no.addEventListener('click', ()=>{
+    no.textContent = "Nice try 😜";
+    setTimeout(move, 120);
+  });
+})();
+
+/* Yes button */
+(function yesFlow(){
+  const yes = document.getElementById('yesBtn');
+  const cel = document.getElementById('celebrate');
+  yes.addEventListener('click', ()=>{
+    cel.classList.add('show');
+    confetti();
+    updateDays();
+    if (window.navigator.vibrate) navigator.vibrate([20,50,20]);
+  });
+  function updateDays(){
+    const since = document.getElementById('since');
+    const start = new Date(RELATIONSHIP_START+"T00:00:00");
+    const now = new Date();
+    const days = Math.floor((now - start)/86400000);
+    since.textContent = `Days since our first day: ${days.toLocaleString()}`;
+  }
+})();
+
+/* Confetti */
+function confetti(){
+  const c = document.getElementById('fx');
+  const ctx = c.getContext('2d');
+  let W = c.width = innerWidth, H = c.height = innerHeight;
+  const N = 180;
+  const P = [];
+  const colors = ["#ff4d6d","#ffd166","#4dd0e1","#a78bfa","#64ffda","#f4a261"];
+  for(let i=0;i<N;i++){
+    P.push({
+      x: W/2, y: H/2,
+      vx: (Math.random()*2-1) * (2 + Math.random()*6),
+      vy: (Math.random()*2-1) * (2 + Math.random()*6),
+      g: 0.06 + Math.random()*0.06,
+      s: 2 + Math.random()*4,
+      a: 1,
+      c: colors[i%colors.length],
+      ttl: 90 + Math.random()*30
+    });
+  }
+  let t=0, raf;
+  const draw=()=>{
+    ctx.clearRect(0,0,W,H);
+    P.forEach(p=>{
+      p.vy += p.g;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.ttl -= 1; p.a = Math.max(0, p.ttl/120);
+      ctx.globalAlpha = p.a;
+      ctx.fillStyle = p.c;
+      ctx.fillRect(p.x, p.y, p.s, p.s);
+    });
+    ctx.globalAlpha = 1;
+    t++;
+    if(t<140) raf = requestAnimationFrame(draw);
+    else cancelAnimationFrame(raf);
+  };
+  addEventListener('resize', ()=>{ W = c.width = innerWidth; H = c.height = innerHeight; }, {once:true});
+  draw();
+}
+</script>
+</body>
+</html>
